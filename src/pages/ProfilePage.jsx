@@ -12,7 +12,8 @@ import {
     Typography,
     Divider,
     Space,
-    Tag
+    Tag,
+    Input
 } from 'antd';
 import { 
     UserOutlined, 
@@ -22,10 +23,11 @@ import {
     IdcardOutlined, 
     TeamOutlined, 
     CalendarOutlined, 
-    SafetyOutlined 
+    SafetyOutlined,
+    LockOutlined
 } from '@ant-design/icons';
 import { getProfile } from '../services/authService';
-import { getReportingManagers, updateReportingManager } from '../services/employeeService';
+import { getReportingManagers, updateReportingManager, updatePassword } from '../services/employeeService';
 
 const { Title, Text } = Typography;
 
@@ -33,9 +35,11 @@ const ProfilePage = () => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
+    const [passwordModalVisible, setPasswordModalVisible] = useState(false);
     const [managers, setManagers] = useState([]);
     const [updating, setUpdating] = useState(false);
     const [form] = Form.useForm();
+    const [passwordForm] = Form.useForm();
 
     useEffect(() => {
         fetchProfile();
@@ -70,6 +74,11 @@ const ProfilePage = () => {
         setModalVisible(true);
     };
 
+    const showPasswordModal = () => {
+        passwordForm.resetFields();
+        setPasswordModalVisible(true);
+    };
+
     const handleUpdate = async (values) => {
         setUpdating(true);
         try {
@@ -79,6 +88,23 @@ const ProfilePage = () => {
             fetchProfile();
         } catch (error) {
             message.error(error.response?.data?.message || 'Failed to update reporting person');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handlePasswordUpdate = async (values) => {
+        setUpdating(true);
+        try {
+            await updatePassword({
+                oldPassword: values.oldPassword,
+                newPassword: values.newPassword
+            });
+            message.success('Password updated successfully');
+            setPasswordModalVisible(false);
+            passwordForm.resetFields();
+        } catch (error) {
+            message.error(error.response?.data?.message || 'Failed to update password');
         } finally {
             setUpdating(false);
         }
@@ -108,13 +134,22 @@ const ProfilePage = () => {
         <div>
             <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Title level={2} style={{ margin: 0 }}>My Profile</Title>
-                <Button 
-                    type="primary" 
-                    icon={<EditOutlined />}
-                    onClick={showModal}
-                >
-                    Update Reporting Person
-                </Button>
+                <Space>
+                    <Button 
+                        type="default" 
+                        icon={<LockOutlined />}
+                        onClick={showPasswordModal}
+                    >
+                        Update Password
+                    </Button>
+                    <Button 
+                        type="primary" 
+                        icon={<EditOutlined />}
+                        onClick={showModal}
+                    >
+                        Update Reporting Person
+                    </Button>
+                </Space>
             </div>
 
             <Row gutter={[24, 24]}>
@@ -212,6 +247,7 @@ const ProfilePage = () => {
                 </Col>
             </Row>
 
+            {/* Update Reporting Person Modal */}
             <Modal
                 title="Update Reporting Person"
                 open={modalVisible}
@@ -255,6 +291,85 @@ const ProfilePage = () => {
                             </Button>
                             <Button type="primary" htmlType="submit" loading={updating}>
                                 Update
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Update Password Modal */}
+            <Modal
+                title="Update Password"
+                open={passwordModalVisible}
+                onCancel={() => setPasswordModalVisible(false)}
+                footer={null}
+                width={500}
+            >
+                <Form
+                    form={passwordForm}
+                    layout="vertical"
+                    onFinish={handlePasswordUpdate}
+                    style={{ marginTop: 24 }}
+                >
+                    <Form.Item
+                        name="oldPassword"
+                        label="Current Password"
+                        rules={[
+                            { required: true, message: 'Please enter your current password' }
+                        ]}
+                    >
+                        <Input.Password 
+                            size="large" 
+                            placeholder="Enter current password"
+                            prefix={<LockOutlined />}
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="newPassword"
+                        label="New Password"
+                        rules={[
+                            { required: true, message: 'Please enter your new password' },
+                            { min: 8, message: 'Password must be at least 8 characters' }
+                        ]}
+                    >
+                        <Input.Password 
+                            size="large" 
+                            placeholder="Enter new password"
+                            prefix={<LockOutlined />}
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="confirmPassword"
+                        label="Confirm New Password"
+                        dependencies={['newPassword']}
+                        rules={[
+                            { required: true, message: 'Please confirm your new password' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('newPassword') === value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error('Passwords do not match'));
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password 
+                            size="large" 
+                            placeholder="Confirm new password"
+                            prefix={<LockOutlined />}
+                        />
+                    </Form.Item>
+
+                    <Form.Item style={{ marginBottom: 0 }}>
+                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+                            <Button onClick={() => setPasswordModalVisible(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="primary" htmlType="submit" loading={updating}>
+                                Update Password
                             </Button>
                         </Space>
                     </Form.Item>

@@ -7,6 +7,17 @@ export const getMyAttendance = async (startDate, endDate) => {
     return response.data;
 };
 
+
+export const gettotalhoursforcalendar = async (startDate, endDate) => {
+    const response = await api.get('/attendance/gettotalhoursforcalendar', {
+        params: { start_date: startDate, end_date: endDate }
+    });
+    return response.data;
+};
+
+
+
+
 export const getFullEmployeeAttendance = async (startDate, endDate, employeeCode = null) => {
     const response = await api.get('/attendance/full-employee-attendance', {
         params: { 

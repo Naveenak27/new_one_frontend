@@ -210,18 +210,19 @@ const RolesPage = () => {
         }
     };
 
-    const fetchModulesAndPermissions = async () => {
-        try {
-            const [modulesRes, permissionsRes] = await Promise.all([
-                api.get('/modules'),
-                api.get('/permissions')
-            ]);
-            setModules(modulesRes.data.data || []);
-            setPermissions(permissionsRes.data.data || []);
-        } catch (error) {
-            message.error('Failed to fetch modules and permissions');
-        }
-    };
+const fetchModulesAndPermissions = async () => {
+    try {
+        const [modulesRes, permissionsRes] = await Promise.all([
+            api.get('/permissions/modules'),  // Changed from '/modules'
+            api.get('/permissions')           // This stays the same
+        ]);
+        setModules(modulesRes.data.data || []);
+        setPermissions(permissionsRes.data.data || []);
+    } catch (error) {
+        message.error('Failed to fetch modules and permissions');
+        console.error(error); // Add this to see actual error
+    }
+};
 
     const showPermissionModal = async (role) => {
         setEditingRole(role);

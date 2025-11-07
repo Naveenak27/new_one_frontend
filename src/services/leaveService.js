@@ -25,6 +25,12 @@ export const getAllLeaves = async () => {
     return response.data;
 };
 
+export const holdLeave = async (leaveId, holdReason) => {
+    const response = await api.put(`/leaves/${leaveId}/hold`, { hold_reason: holdReason });
+    return response.data;
+};
+
+
 export const cancelLeave = (leaveId) => api.put(`/leaves/cancel/${leaveId}`);
 
 export const approveLeave = async (id, comments) => {

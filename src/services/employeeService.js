@@ -21,6 +21,12 @@ export const getEmployeeById = async (id) => {
     const response = await api.get(`/employees/${id}`);
     return response.data;
 };
+// Add this function to your employeeService.js
+export const updatePassword = async (passwordData) => {
+    const response = await api.put('/auth/update-password', passwordData);
+    return response.data;
+};
+
 
 export const createEmployee = async (employeeData) => {
     const response = await api.post('/employees', employeeData);
